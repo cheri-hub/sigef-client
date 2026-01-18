@@ -1,138 +1,167 @@
-# SIGEF Client - Cliente C# com Playwright
+# Cliente SIGEF
 
-Cliente C# para autenticação automática no SIGEF/Gov.br usando Playwright.
+Cliente C# para autenticação e download de arquivos do SIGEF (Sistema de Gestão Fundiária) via API GovAuth.
 
-Funciona **exatamente igual** à API Python - abre o Chrome do sistema, aguarda login com certificado digital, e captura cookies/localStorage/JWT automaticamente.
+## Requisitos
 
-## 🚀 Requisitos
+- .NET 9.0 SDK
+- Chrome browser instalado
 
-- .NET 8.0 SDK
-- Google Chrome instalado
-- Certificado digital A1 (instalado no Windows)
+## Instalação
 
-## 📦 Instalação
-
+1. Clone o repositório:
 ```bash
-# Clone o repositório
 git clone https://github.com/cheri-hub/sigef-client.git
 cd sigef-client
+```
 
-# Restaure as dependências
+2. Restaure os pacotes:
+```bash
 dotnet restore
-
-# Instale o Playwright (browsers)
-dotnet build
-cd bin/Debug/net8.0
-.\playwright.ps1 install chromium
-cd ../../..
 ```
 
-## ⚙️ Configuração
-
-Edite o arquivo `Program.cs` e configure:
-
-```csharp
-private const string API_BASE_URL = "https://govauth.cherihub.cloud/api";
-private const string API_KEY = "sua-api-key-aqui";
+3. Instale os browsers do Playwright:
+```bash
+pwsh bin/Debug/net9.0/playwright.ps1 install
 ```
 
-## 🔐 Como Funciona
+## Configuração Segura
 
-1. **Executa o cliente**: `dotnet run`
-2. **Chrome abre automaticamente** com a página do SIGEF
-3. **Usuário seleciona certificado** digital na janela do Windows
-4. **Faz login no Gov.br** normalmente
-5. **Cliente detecta o login** automaticamente
-6. **Captura cookies, localStorage e JWT**
-7. **Envia para a API** e salva `storage_state.json`
-8. **Pronto!** Pode fazer download de arquivos do SIGEF
+### Opção 1: User Secrets (Recomendado para desenvolvimento)
 
-## 📁 Estrutura
+Configure a API Key usando User Secrets (nunca commitada no repositório):
 
-```
-sigef-client/
-├── Program.cs                  # Ponto de entrada
-├── PlaywrightAuthClient.cs     # Cliente com Playwright (autenticação automática)
-├── GovAuthClient.cs            # Cliente HTTP simples (alternativo)
-├── GovAuthClient.csproj        # Projeto .NET 8
-└── README.md                   # Este arquivo
+```bash
+dotnet user-secrets set "SigefClient:ApiKey" "sua-api-key-aqui"
 ```
 
-## 🎯 Uso
+### Opção 2: Variáveis de Ambiente
+
+Configure a variável de ambiente:
+```bash
+# Windows PowerShell
+$env:SIGEF_SigefClient__ApiKey = "sua-api-key-aqui"
+
+# Linux/macOS
+export SIGEF_SigefClient__ApiKey="sua-api-key-aqui"
+```
+
+### Opção 3: appsettings.json (Apenas para testes locais)
+
+⚠️ **NUNCA** commite o arquivo com a API Key real!
+
+Edite `appsettings.json`:
+```json
+{
+  "SigefClient": {
+    "ApiKey": "sua-api-key-aqui"
+  }
+}
+```
+
+## Executando
 
 ```bash
 dotnet run
 ```
 
-### Exemplo de saída:
+O programa irá:
+1. Verificar se você está autenticado na API
+2. Se não estiver, abrir o Chrome automaticamente
+3. Navegar até o SIGEF e clicar em "Acessar com Gov.br"
+4. Aguardar você autenticar com certificado digital
+5. Capturar os cookies/tokens de autenticação
+6. Enviar os dados para a API
+7. Demonstrar download de arquivos (ZIP e CSV)
+
+## Estrutura do Projeto
 
 ```
-╔═══════════════════════════════════════════════════════════╗
-║     Gov-Auth API - Cliente C# com Playwright              ║
-║     Autenticação automática igual à API Python            ║
-╚═══════════════════════════════════════════════════════════╝
-
-[1] Verificando status da sessão atual...
-    Autenticado: False
-    Mensagem: Nenhuma sessão válida encontrada
-
-[2] Iniciando autenticação via Playwright...
-    (O Chrome será aberto automaticamente)
-
-🔐 Iniciando autenticação com Playwright...
-
-✓ Chrome aberto
-📡 Navegando para SIGEF...
-🔍 Procurando botão de login...
-   ✓ Clicado: button.sign-in
-
-⏳ Aguardando autenticação...
-   → Selecione seu certificado digital
-   → Complete o login no Gov.br
-
-✓ Cookie de sessão detectado!
-
-📦 Capturando dados de autenticação...
-   ✓ 13 cookies capturados
-   ✓ 0 itens do localStorage capturados
-   ✓ Storage state salvo em: C:\Users\...\GovAuth\storage_state.json
-
-📤 Enviando dados para a API...
-   ✓ Dados enviados com sucesso!
-
-✅ Autenticação concluída com sucesso!
-
-[3] Testando download de arquivos do SIGEF...
-
-    Digite o código da parcela: f7fd7a57-4858-4453-b132-74e74dee2101
-
-📥 Baixando arquivos da parcela: f7fd7a57-4858-4453-b132-74e74dee2101
-   ✓ Download concluído: 122,768 bytes
-
-    💾 Arquivo salvo: C:\repo\sigef-client\parcela_f7fd7a57.zip
-
-╔═══════════════════════════════════════════════════════════╗
-║                    Teste Concluído!                       ║
-╚═══════════════════════════════════════════════════════════╝
+SigefClient/
+├── Application/
+│   └── Services/
+│       └── AuthenticationService.cs    # Orquestra autenticação
+├── Configuration/
+│   └── SigefClientOptions.cs           # Opções de configuração
+├── Domain/
+│   ├── Entities/
+│   │   └── AuthEntities.cs             # DTOs e entidades
+│   └── Interfaces/
+│       ├── IAuthenticationService.cs   # Interface do serviço principal
+│       ├── IBrowserAutomationService.cs # Interface de automação
+│       └── ISigefApiClient.cs          # Interface do cliente HTTP
+├── Infrastructure/
+│   ├── Browser/
+│   │   └── PlaywrightBrowserService.cs # Implementação Playwright
+│   └── Http/
+│       └── SigefApiClient.cs           # Cliente HTTP
+├── appsettings.json                    # Configurações
+├── Program.cs                          # Ponto de entrada
+├── README.md                           # Este arquivo
+└── SigefClient.csproj                  # Projeto .NET 9
 ```
 
-## 🔧 API Endpoints Utilizados
+## Arquitetura
+
+O projeto segue os princípios SOLID e Clean Architecture:
+
+- **Domain**: Interfaces e entidades (sem dependências externas)
+- **Application**: Serviços de aplicação (regras de negócio)
+- **Infrastructure**: Implementações concretas (HTTP, Playwright)
+
+### Injeção de Dependência
+
+Todos os serviços são injetados via `Microsoft.Extensions.DependencyInjection`:
+
+- `ISigefApiClient` → `SigefApiClient`
+- `IBrowserAutomationService` → `PlaywrightBrowserService`
+- `IAuthenticationService` → `AuthenticationService`
+
+### Configuração
+
+Usa o padrão Options do .NET com múltiplas fontes:
+1. `appsettings.json` (valores padrão)
+2. `appsettings.{Environment}.json` (por ambiente)
+3. User Secrets (desenvolvimento seguro)
+4. Variáveis de ambiente (`SIGEF_*`)
+5. Argumentos de linha de comando
+
+## Uso Programático
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using SigefClient.Domain.Interfaces;
+
+// Obtém o serviço via DI
+var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
+
+// Garante autenticação
+var authResult = await authService.EnsureAuthenticatedAsync();
+if (!authResult.Success)
+{
+    Console.WriteLine($"Erro: {authResult.ErrorMessage}");
+    return;
+}
+
+// Baixa todos os arquivos como ZIP
+var zipResult = await authService.DownloadAllFilesAsync("codigo-imovel");
+await File.WriteAllBytesAsync("parcela.zip", zipResult.Data!);
+
+// OU baixa CSV específico
+var csvResult = await authService.DownloadCsvAsync("codigo-imovel", "parcela");
+await File.WriteAllBytesAsync("parcela.csv", csvResult.Data!);
+```
+
+## Endpoints da API Suportados
 
 | Endpoint | Descrição |
 |----------|-----------|
-| `GET /v1/auth/status` | Verifica se há sessão autenticada |
-| `POST /v1/auth/browser-login` | Inicia sessão de autenticação |
-| `POST /v1/auth/browser-callback` | Envia cookies capturados |
-| `GET /v1/sigef/arquivo/todos/{codigo}` | Baixa todos os CSVs em ZIP |
+| `GET /v1/auth/status` | Verifica status de autenticação |
+| `POST /v1/auth/browser-login` | Inicia autenticação via browser |
+| `POST /v1/auth/browser-callback` | Callback com dados de autenticação |
+| `GET /v1/sigef/arquivo/todos/{codigo}` | Download ZIP com todos os arquivos |
+| `GET /v1/sigef/arquivo/csv/{codigo}/{tipo}` | Download CSV específico (parcela/vertice/limite) |
 
-## 📝 Licença
+## Licença
 
-MIT License - Uso livre para fins comerciais e pessoais.
-
-## 🤝 Contribuições
-
-Pull requests são bem-vindos!
-
----
-
-Desenvolvido para uso com a [Gov-Auth API](https://github.com/cheri-hub/sigef-api).
+MIT
