@@ -22,7 +22,7 @@ dotnet restore
 
 3. Instale os browsers do Playwright:
 ```bash
-pwsh bin/Debug/net9.0/playwright.ps1 install
+pwsh bin/Debug/net9.0/playwright.ps1 install chromium
 ```
 
 ## Configuração Segura
@@ -59,11 +59,32 @@ Edite `appsettings.json`:
 }
 ```
 
-## Executando
+## Uso
+
+### Execução Básica
 
 ```bash
 dotnet run
 ```
+
+### Opções de Linha de Comando
+
+| Opção | Alias | Descrição |
+|-------|-------|-----------|
+| `--force` | `-f` | Força nova autenticação, ignorando sessão em cache |
+| `--logout` | `-l` | Realiza logout da sessão atual e encerra |
+
+```bash
+# Forçar nova autenticação
+dotnet run --force
+dotnet run -f
+
+# Fazer logout da sessão
+dotnet run --logout
+dotnet run -l
+```
+
+### Fluxo de Execução
 
 O programa irá:
 1. Verificar se você está autenticado na API
@@ -73,11 +94,12 @@ O programa irá:
 5. Capturar os cookies/tokens de autenticação
 6. Enviar os dados para a API
 7. Demonstrar download de arquivos (ZIP e CSV)
+8. Perguntar se deseja fazer logout
 
 ## Estrutura do Projeto
 
 ```
-SigefClient/
+sigef-client/
 ├── Application/
 │   └── Services/
 │       └── AuthenticationService.cs    # Orquestra autenticação
@@ -119,7 +141,7 @@ Todos os serviços são injetados via `Microsoft.Extensions.DependencyInjection`
 
 ### Configuração
 
-Usa o padrão Options do .NET com múltiplas fontes:
+Usa o padrão Options do .NET com múltiplas fontes (em ordem de prioridade):
 1. `appsettings.json` (valores padrão)
 2. `appsettings.{Environment}.json` (por ambiente)
 3. User Secrets (desenvolvimento seguro)
@@ -150,6 +172,9 @@ await File.WriteAllBytesAsync("parcela.zip", zipResult.Data!);
 // OU baixa CSV específico
 var csvResult = await authService.DownloadCsvAsync("codigo-imovel", "parcela");
 await File.WriteAllBytesAsync("parcela.csv", csvResult.Data!);
+
+// Logout (opcional)
+var logoutResult = await authService.LogoutAsync();
 ```
 
 ## Endpoints da API Suportados
@@ -159,8 +184,15 @@ await File.WriteAllBytesAsync("parcela.csv", csvResult.Data!);
 | `GET /v1/auth/status` | Verifica status de autenticação |
 | `POST /v1/auth/browser-login` | Inicia autenticação via browser |
 | `POST /v1/auth/browser-callback` | Callback com dados de autenticação |
+| `POST /v1/auth/logout` | Realiza logout da sessão |
 | `GET /v1/sigef/arquivo/todos/{codigo}` | Download ZIP com todos os arquivos |
 | `GET /v1/sigef/arquivo/csv/{codigo}/{tipo}` | Download CSV específico (parcela/vertice/limite) |
+
+## Segurança
+
+- **Cookies são sensíveis**: O arquivo `storage_state.json` contém cookies de sessão e é ignorado pelo git
+- **API Key**: Use User Secrets em desenvolvimento, variáveis de ambiente em produção
+- **Certificado Digital**: A autenticação Gov.br exige certificado A1 instalado no sistema
 
 ## Licença
 
