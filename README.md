@@ -181,12 +181,12 @@ var logoutResult = await authService.LogoutAsync();
 
 | Endpoint | Descrição |
 |----------|-----------|
-| `GET /v1/auth/status` | Verifica status de autenticação |
-| `POST /v1/auth/browser-login` | Inicia autenticação via browser |
-| `POST /v1/auth/browser-callback` | Callback com dados de autenticação |
-| `POST /v1/auth/logout` | Realiza logout da sessão |
-| `GET /v1/sigef/arquivo/todos/{codigo}` | Download ZIP com todos os arquivos |
-| `GET /v1/sigef/arquivo/csv/{codigo}/{tipo}` | Download CSV específico (parcela/vertice/limite) |
+| `GET /auth/status` | Verifica status de autenticação |
+| `POST /auth/browser-login` | Inicia autenticação via browser |
+| `POST /auth/browser-callback` | Callback com dados de autenticação |
+| `POST /auth/logout` | Realiza logout da sessão |
+| `GET /sigef/arquivo/todos/{codigo}` | Download ZIP com todos os arquivos |
+| `GET /sigef/arquivo/csv/{codigo}/{tipo}` | Download CSV específico (parcela/vertice/limite) |
 
 ## Segurança
 

@@ -36,7 +36,7 @@ public sealed class SigefApiClient : ISigefApiClient
 
     public async Task<OperationResult<AuthStatus>> GetAuthStatusAsync(CancellationToken cancellationToken = default)
     {
-        const string endpoint = "v1/auth/status";
+        const string endpoint = "auth/status";
         _logger.LogDebug("Verificando status de autenticação em {Endpoint}", endpoint);
 
         try
@@ -52,7 +52,7 @@ public sealed class SigefApiClient : ISigefApiClient
 
     public async Task<OperationResult<BrowserLoginResponse>> StartBrowserLoginAsync(CancellationToken cancellationToken = default)
     {
-        const string endpoint = "v1/auth/browser-login";
+        const string endpoint = "auth/browser-login";
         _logger.LogDebug("Iniciando browser-login em {Endpoint}", endpoint);
 
         try
@@ -68,7 +68,7 @@ public sealed class SigefApiClient : ISigefApiClient
 
     public async Task<OperationResult<CallbackResponse>> SendAuthCallbackAsync(AuthCallbackData data, CancellationToken cancellationToken = default)
     {
-        const string endpoint = "v1/auth/browser-callback";
+        const string endpoint = "auth/browser-callback";
         _logger.LogDebug("Enviando callback de autenticação para {Endpoint}", endpoint);
 
         try
@@ -84,7 +84,7 @@ public sealed class SigefApiClient : ISigefApiClient
 
     public async Task<OperationResult<byte[]>> DownloadAllFilesAsync(string codigoImovel, CancellationToken cancellationToken = default)
     {
-        var endpoint = $"v1/sigef/arquivo/todos/{codigoImovel}";
+        var endpoint = $"sigef/arquivo/todos/{codigoImovel}";
         _logger.LogDebug("Baixando todos os arquivos do imóvel {Codigo} (ZIP)", codigoImovel);
 
         try
@@ -100,7 +100,7 @@ public sealed class SigefApiClient : ISigefApiClient
 
     public async Task<OperationResult<byte[]>> DownloadCsvAsync(string codigoImovel, string tipo, CancellationToken cancellationToken = default)
     {
-        var endpoint = $"v1/sigef/arquivo/csv/{codigoImovel}/{tipo}";
+        var endpoint = $"sigef/arquivo/csv/{codigoImovel}/{tipo}";
         _logger.LogDebug("Baixando CSV {Tipo} do imóvel {Codigo}", tipo, codigoImovel);
 
         try
@@ -116,7 +116,7 @@ public sealed class SigefApiClient : ISigefApiClient
 
     public async Task<OperationResult<LogoutResponse>> LogoutAsync(CancellationToken cancellationToken = default)
     {
-        const string endpoint = "v1/auth/logout";
+        const string endpoint = "auth/logout";
         _logger.LogDebug("Realizando logout em {Endpoint}", endpoint);
 
         try
